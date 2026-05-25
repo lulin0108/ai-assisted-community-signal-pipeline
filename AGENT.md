@@ -137,6 +137,44 @@ Expected style:
 - Keep configuration explicit and documented.
 - Avoid unnecessary abstractions before the pipeline shape is validated.
 - Add comments only where they clarify non-obvious decisions.
+- Do not add defensive programming by default. Validate inputs and handle errors where the pipeline boundary requires it, but avoid broad guards, redundant checks, or fallback branches that hide real bugs.
+- Keep comments minimal and functional. Do not add AI-like explanatory narration, restatements of obvious code, or long comments that do not add operational meaning.
+- Write code in a normal engineering style: clear names, direct control flow, focused functions, and no decorative or over-explanatory scaffolding.
+
+## Development Boundaries for the Next Phase
+
+Future work should improve the current baseline without changing the project's responsible decision-support framing.
+
+Important development boundaries:
+
+- Treat the current system as a transparent baseline: public API collection, cleaning, quality filtering, heuristic relevance scoring, signal extraction, and report generation.
+- Do not describe the current implementation as a trained machine-learning system or predictive model.
+- If NLP or ML is added, use it to improve evidence quality, semantic grouping, labeling, summarization, uncertainty estimation, or reviewer workflow support.
+- Do not add an investment-return predictor, invest/do-not-invest classifier, automated investment score, or financial recommendation layer.
+- Keep user-supplied query support explicit and auditable. Store the venture category, query families, source limits, and run configuration with each run.
+- Preserve the distinction between observed evidence, heuristic/ML interpretation, and human-facing implications.
+- Keep deterministic heuristic outputs available even if LLM-assisted summarization is added later.
+- Prefer API-based collection and documented source adapters over scraping web pages.
+- Add new data sources only after documenting why the source is public, allowed, relevant, and provenance-preserving.
+- Do not add private-data enrichment, profile enrichment, identity inference, or sensitive-attribute inference.
+- Treat frontend or dashboard work as an evidence-review interface, not a trading, ranking, or automated decision product.
+- If a database is introduced, preserve raw items, normalized items, analysis outputs, diagnostics, and run metadata as separate concepts.
+- Future dashboards should allow filtering, source review, run comparison, and evidence inspection before adding higher-level recommendations.
+- Large-scale collection must use explicit source limits, pagination, durable storage, deduplication, and batch processing. Do not turn the local script into an unbounded in-memory crawler.
+
+## Current Technical Hardening Priorities
+
+The current MVP is runnable and modular, but still prototype-grade. Future implementation should prioritize:
+
+- Add tests for text cleaning, quality filtering, relevance scoring, signal extraction, collectors, and exporters.
+- Define typed schemas for raw items, prepared items, evidence rows, diagnostics, and analysis results.
+- Replace broad exception handling with narrower network, HTTP, parsing, validation, and programming-error paths.
+- Add retry behavior consistently across collectors.
+- Replace ad hoc `print` statements with structured logging that includes `run_id` and source context.
+- Add command-line arguments or config-file support before building a UI around custom user queries.
+- Create a deterministic sample dataset for repeatable demos and regression tests.
+- Add a small evaluation rubric or labeled set to measure filtering precision, relevance ranking quality, and report usefulness.
+- Add local storage and run indexing before attempting large-scale collection, dashboard-scale browsing, or semantic clustering across many runs.
 
 ## Documentation Expectations
 
@@ -147,7 +185,9 @@ Required documentation behavior:
 - Read `AGENT.md` and `PROJECT_STATE.md` before substantive work.
 - Treat `AGENT.md` as the stable source of truth for boundaries and operating rules.
 - Treat `PROJECT_STATE.md` as the evolving source of truth for current progress and discoveries.
+- Treat `docs/development_log.md` as the chronological record of completed development steps and verification.
 - Update `PROJECT_STATE.md` after substantive implementation, data-source evaluation, design decisions, failed attempts, or important findings.
+- Update `docs/development_log.md` after each completed development step with what changed, why it changed, verification, and the next likely step.
 - Update `AGENT.md` only when project boundaries, constraints, or operating rules intentionally change.
 - Record decisions in a way that future AI or coding assistants can understand without prior conversation context.
 
@@ -186,6 +226,9 @@ The following project rules should not be casually changed:
 
 - `AGENT.md` is the stable boundary and operating-contract document.
 - `PROJECT_STATE.md` is the evolving current-state and handoff document.
+- `docs/development_plan.md` records the current implementation roadmap and should be updated when priorities or sequencing change.
+- `docs/development_log.md` records completed work and verification history.
+- `docs/scale_strategy.md` records the current plan for larger-scale public data collection, storage, batching, and analysis.
 - The project must remain a decision-support system, not an investment oracle.
 - The project must not provide financial, investment, legal, or tax advice.
 - Data collection must remain limited to legally and ethically accessible public or community-visible sources.

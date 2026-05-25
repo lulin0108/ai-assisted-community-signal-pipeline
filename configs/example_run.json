@@ -1,0 +1,32 @@
+{
+  "theme": "AI tools for real estate agents and small property teams",
+  "community_queries": [
+    "real estate CRM pain",
+    "agent workflow automation",
+    "property management admin frustration"
+  ],
+  "stackexchange_queries": [
+    "crm webhook issue",
+    "real estate api integration",
+    "zapier automation error"
+  ],
+  "stackexchange_site": "stackoverflow",
+  "max_discussion_items": 50,
+  "max_review_items": 50,
+  "request_timeout": 25,
+  "processing_batch_size": 500,
+  "embedding_backend": "hashing",
+  "embedding_model": "",
+  "cluster_similarity_threshold": 0.12,
+  "enable_discussion_source": true,
+  "enable_review_source": true,
+  "discussion_page_size": 0,
+  "discussion_max_pages_per_query": 0,
+  "discussion_sort": "relevance",
+  "review_page_size": 0,
+  "review_max_pages_per_query": 0,
+  "review_sort": "activity",
+  "review_order": "desc",
+  "debug_save_raw": true,
+  "raw_items_file": ""
+}

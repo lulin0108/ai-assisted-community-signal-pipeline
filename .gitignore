@@ -4,11 +4,13 @@ __pycache__/
 .env
 data/raw/*
 data/processed/*
+data/storage/*
 output/csv/*
 output/md/*
 output/html/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/storage/.gitkeep
 !output/csv/.gitkeep
 !output/md/.gitkeep
 !output/html/.gitkeep

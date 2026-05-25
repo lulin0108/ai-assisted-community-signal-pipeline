@@ -4,14 +4,19 @@ from html import escape
 from pathlib import Path
 
 
-def export_html_report(analysis: dict, output_dir: Path, run_id: str) -> Path:
+def export_html_report(
+    analysis: dict,
+    output_dir: Path,
+    run_id: str,
+    cluster_artifacts: list[dict] | None = None,
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / f"{run_id}_venture_signal_memo.html"
-    path.write_text(_render_html(analysis), encoding="utf-8")
+    path.write_text(_render_html(analysis, cluster_artifacts or []), encoding="utf-8")
     return path
 
 
-def _render_html(analysis: dict) -> str:
+def _render_html(analysis: dict, cluster_artifacts: list[dict]) -> str:
     meta = analysis["run_metadata"]
     volume = analysis["volume"]
     filtering = analysis.get("filtering_summary", {})
@@ -46,6 +51,7 @@ def _render_html(analysis: dict) -> str:
         f"{escape(str(reason))}={escape(str(count))}"
         for reason, count in filtering.get("top_exclusion_reasons", {}).items()
     ) or "none"
+    clusters = _render_clusters(cluster_artifacts)
 
     return f"""<!doctype html>
 <html lang="en">
@@ -108,6 +114,32 @@ def _render_html(analysis: dict) -> str:
       padding: 12px;
       border: 1px solid #d9e2ec;
     }}
+    .cluster-list {{
+      display: grid;
+      gap: 16px;
+    }}
+    .cluster {{
+      border: 1px solid #d9e2ec;
+      padding: 16px;
+      background: #fbfcfd;
+    }}
+    .cluster h3 {{
+      margin: 0 0 8px;
+      color: #102a43;
+    }}
+    .cluster dl {{
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 8px 14px;
+      margin: 12px 0;
+    }}
+    .cluster dt {{
+      font-weight: bold;
+      color: #52606d;
+    }}
+    .cluster dd {{
+      margin: 0;
+    }}
     footer {{
       color: #52606d;
       font-size: 14px;
@@ -132,6 +164,11 @@ def _render_html(analysis: dict) -> str:
         <div><strong>Community Query Family</strong><br>{escape('; '.join(meta['community_queries']))}</div>
         <div><strong>Stack Exchange Site</strong><br>{escape(meta['stackexchange_site'])}</div>
         <div><strong>Stack Exchange Query Family</strong><br>{escape('; '.join(meta['stackexchange_queries']))}</div>
+        <div><strong>Max Discussion Items</strong><br>{escape(str(meta.get('max_discussion_items', 'n/a')))}</div>
+        <div><strong>Max Review Items</strong><br>{escape(str(meta.get('max_review_items', 'n/a')))}</div>
+        <div><strong>Request Timeout</strong><br>{escape(str(meta.get('request_timeout', 'n/a')))} seconds</div>
+        <div><strong>Debug Raw Saved</strong><br>{escape(str(meta.get('debug_save_raw', 'n/a')))}</div>
+        <div><strong>Raw Items File</strong><br>{escape(str(meta.get('raw_items_file') or 'none'))}</div>
       </div>
     </section>
 
@@ -164,6 +201,11 @@ def _render_html(analysis: dict) -> str:
       </ul>
     </section>
 
+    <section>
+      <h2>Pain Point Clusters</h2>
+      {clusters}
+    </section>
+
     {''.join(sections)}
 
     <section>
@@ -188,3 +230,47 @@ def _render_html(analysis: dict) -> str:
 </body>
 </html>
 """
+
+
+def _render_clusters(cluster_artifacts: list[dict]) -> str:
+    if not cluster_artifacts:
+        return "<p>No evidence clusters generated for this run.</p>"
+
+    clusters = []
+    for artifact in cluster_artifacts:
+        cluster = artifact["artifact"]
+        excerpts = "".join(
+            f"<li>{escape(excerpt)}</li>"
+            for excerpt in cluster.get("evidence_excerpts", [])[:3]
+        )
+        if not excerpts:
+            excerpts = "<li>No representative evidence excerpt stored.</li>"
+        clusters.append(
+            f"""
+            <article class="cluster">
+              <h3>{escape(cluster['label'])}</h3>
+              <dl>
+                <dt>Cluster ID</dt><dd>{escape(cluster['cluster_id'])}</dd>
+                <dt>Items</dt><dd>{escape(str(cluster['item_count']))}</dd>
+                <dt>Source mix</dt><dd>{escape(_format_dict(cluster.get('source_mix', {})))}</dd>
+                <dt>Avg relevance</dt><dd>{escape(str(cluster.get('average_relevance_score', 'n/a')))}</dd>
+                <dt>Opportunity</dt><dd>{escape(cluster['product_opportunity'])}</dd>
+                <dt>Top terms</dt><dd>{escape(_format_list(cluster.get('top_terms', [])) or 'none')}</dd>
+                <dt>Representatives</dt><dd>{escape(_format_list(cluster.get('representative_item_ids', [])) or 'none')}</dd>
+                <dt>Grouping basis</dt><dd>{escape(cluster.get('grouping_basis', 'n/a'))}</dd>
+              </dl>
+              <ul>{excerpts}</ul>
+            </article>
+            """
+        )
+    return f"<div class=\"cluster-list\">{''.join(clusters)}</div>"
+
+
+def _format_dict(value: dict) -> str:
+    if not value:
+        return "none"
+    return ", ".join(f"{key}={count}" for key, count in value.items())
+
+
+def _format_list(value: list[str]) -> str:
+    return "; ".join(value)

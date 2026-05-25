@@ -3,6 +3,7 @@
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
+from models import AnalysisResult, EvidenceRow, RunMetadata, VolumeSummary
 from processors.adoption_barrier_extractor import extract_adoption_barriers
 from processors.differentiation_extractor import extract_differentiation_opportunities
 from processors.evidence_relevance import score_signal_relevance, should_keep_signal
@@ -20,7 +21,13 @@ CATEGORY_TITLES = {
 }
 
 
-def analyze_venture_signals(items: list[dict], config, run_id: str) -> dict:
+def analyze_venture_signals(
+    items: list[dict],
+    config,
+    run_id: str,
+    filtering_summary: dict | None = None,
+    relevance_summary: dict | None = None,
+) -> dict:
     evidence_rows = []
 
     for item in items:
@@ -30,29 +37,30 @@ def analyze_venture_signals(items: list[dict], config, run_id: str) -> dict:
         signals.extend(extract_differentiation_opportunities(item))
 
         for signal in signals:
-            row = {
-                "run_id": run_id,
-                "category": signal["category"],
-                "category_title": CATEGORY_TITLES.get(signal["category"], signal["category"]),
-                "matched_terms": signal["matched_terms"],
-                "evidence_excerpt": signal["evidence_excerpt"],
-                "item_id": item["item_id"],
-                "source_type": item["source_type"],
-                "source_name": item["source_name"],
-                "source_url": item["source_url"],
-                "title": item["title"],
-                "created_at": item["created_at"],
-                "rating": item.get("rating", ""),
-                "quality_score": item.get("quality_score", ""),
-                "quality_reasons": item.get("quality_reasons", ""),
-                "relevance_score": item.get("relevance_score", ""),
-                "signal_relevance_score": 0,
-                "relevance_reasons": item.get("relevance_reasons", ""),
-                "relevance_penalties": item.get("relevance_penalties", ""),
-                "is_demo_fallback": item.get("is_demo_fallback", False),
-                "fallback_label": item.get("fallback_label", ""),
-                "fallback_reason": item.get("fallback_reason", ""),
-            }
+            row = EvidenceRow(
+                run_id=run_id,
+                category=signal["category"],
+                category_title=CATEGORY_TITLES.get(signal["category"], signal["category"]),
+                matched_terms=signal["matched_terms"],
+                evidence_excerpt=signal["evidence_excerpt"],
+                item_id=item["item_id"],
+                source_type=item["source_type"],
+                source_name=item["source_name"],
+                source_id=item["source_id"],
+                source_url=item["source_url"],
+                title=item["title"],
+                created_at=item["created_at"],
+                rating=item.get("rating", ""),
+                quality_score=item.get("quality_score", ""),
+                quality_reasons=item.get("quality_reasons", ""),
+                relevance_score=item.get("relevance_score", ""),
+                signal_relevance_score=0,
+                relevance_reasons=item.get("relevance_reasons", ""),
+                relevance_penalties=item.get("relevance_penalties", ""),
+                is_demo_fallback=item.get("is_demo_fallback", False),
+                fallback_label=item.get("fallback_label", ""),
+                fallback_reason=item.get("fallback_reason", ""),
+            ).to_dict()
             row["signal_relevance_score"] = score_signal_relevance(row)
             if should_keep_signal(row):
                 evidence_rows.append(row)
@@ -62,19 +70,28 @@ def analyze_venture_signals(items: list[dict], config, run_id: str) -> dict:
     source_counts = Counter(item["source_type"] for item in items)
     fallback_count = sum(1 for item in items if item.get("is_demo_fallback"))
 
-    return {
-        "run_metadata": {
-            "run_id": run_id,
-            "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-            "project_title": config.project_title,
-            "venture_category": config.product_theme,
-            "community_query": config.community_query,
-            "community_queries": config.community_queries,
-            "stackexchange_site": config.stackexchange_site,
-            "stackexchange_query": config.stackexchange_query,
-            "stackexchange_queries": config.stackexchange_queries,
-        },
-        "data_sources": [
+    return AnalysisResult(
+        run_metadata=RunMetadata(
+            run_id=run_id,
+            generated_at_utc=datetime.now(timezone.utc).isoformat(),
+            project_title=config.project_title,
+            venture_category=config.product_theme,
+            community_query=config.community_query,
+            community_queries=config.community_queries,
+            stackexchange_site=config.stackexchange_site,
+            stackexchange_query=config.stackexchange_query,
+            stackexchange_queries=config.stackexchange_queries,
+            max_discussion_items=config.max_discussion_items,
+            max_review_items=config.max_review_items,
+            request_timeout=config.request_timeout,
+            processing_batch_size=config.processing_batch_size,
+            collection_policy=_collection_policy(config),
+            debug_save_raw=config.debug_save_raw,
+            raw_items_file=config.raw_items_file,
+            resume_from_run_id=getattr(config, "resume_from_run_id", ""),
+            embedding_policy=_embedding_policy(config),
+        ).to_dict(),
+        data_sources=[
             {
                 "source_type": "discussion",
                 "source_name": "Hacker News Algolia comments",
@@ -86,24 +103,48 @@ def analyze_venture_signals(items: list[dict], config, run_id: str) -> dict:
                 "role": "Setup friction, onboarding pain, integration problems, implementation barriers, practical constraints, and dissatisfaction with current tools.",
             },
         ],
-        "volume": {
-            "total_items_analyzed": len(items),
-            "discussion_items": source_counts.get("discussion", 0),
-            "review_items": source_counts.get("review", 0),
-            "evidence_rows": len(evidence_rows),
-            "demo_fallback_items": fallback_count,
-        },
-        "category_summaries": summaries,
-        "evidence_rows": evidence_rows,
-        "uncertainty_notes": _uncertainty_notes(items, evidence_rows, fallback_count),
-        "venture_implications": _venture_implications(summaries),
-        "limitations": [
+        volume=VolumeSummary(
+            total_items_analyzed=len(items),
+            discussion_items=source_counts.get("discussion", 0),
+            review_items=source_counts.get("review", 0),
+            evidence_rows=len(evidence_rows),
+            demo_fallback_items=fallback_count,
+        ).to_dict(),
+        category_summaries=summaries,
+        evidence_rows=evidence_rows,
+        uncertainty_notes=_uncertainty_notes(items, evidence_rows, fallback_count),
+        venture_implications=_venture_implications(summaries),
+        limitations=[
             "This memo is supplementary evidence for human review, not an investment recommendation.",
             "Public online comments and issue feedback are noisy, incomplete, and selection-biased.",
             "The MVP uses transparent heuristics rather than trained classifiers or validated causal models.",
             "Source coverage is intentionally narrow for demo reliability.",
             "Evidence snippets should be checked in source context before any consequential decision.",
         ],
+        filtering_summary=filtering_summary or {},
+        relevance_summary=relevance_summary or {},
+    ).to_dict()
+
+
+def _collection_policy(config) -> dict:
+    return {
+        "enable_discussion_source": config.enable_discussion_source,
+        "enable_review_source": config.enable_review_source,
+        "discussion_page_size": config.discussion_page_size,
+        "discussion_max_pages_per_query": config.discussion_max_pages_per_query,
+        "discussion_sort": config.discussion_sort,
+        "review_page_size": config.review_page_size,
+        "review_max_pages_per_query": config.review_max_pages_per_query,
+        "review_sort": config.review_sort,
+        "review_order": config.review_order,
+    }
+
+
+def _embedding_policy(config) -> dict:
+    return {
+        "embedding_backend": config.embedding_backend,
+        "embedding_model": config.embedding_model or "default",
+        "cluster_similarity_threshold": config.cluster_similarity_threshold,
     }
 
 

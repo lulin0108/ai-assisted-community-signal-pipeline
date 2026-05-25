@@ -3,14 +3,19 @@
 from pathlib import Path
 
 
-def export_markdown_report(analysis: dict, output_dir: Path, run_id: str) -> Path:
+def export_markdown_report(
+    analysis: dict,
+    output_dir: Path,
+    run_id: str,
+    cluster_artifacts: list[dict] | None = None,
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / f"{run_id}_venture_signal_memo.md"
-    path.write_text(_render_markdown(analysis), encoding="utf-8")
+    path.write_text(_render_markdown(analysis, cluster_artifacts or []), encoding="utf-8")
     return path
 
 
-def _render_markdown(analysis: dict) -> str:
+def _render_markdown(analysis: dict, cluster_artifacts: list[dict]) -> str:
     meta = analysis["run_metadata"]
     volume = analysis["volume"]
     filtering = analysis.get("filtering_summary", {})
@@ -26,6 +31,11 @@ def _render_markdown(analysis: dict) -> str:
         f"- Community query family: {_format_list(meta['community_queries'])}",
         f"- Stack Exchange site: {meta['stackexchange_site']}",
         f"- Stack Exchange query family: {_format_list(meta['stackexchange_queries'])}",
+        f"- Max discussion items: {meta.get('max_discussion_items', 'n/a')}",
+        f"- Max review items: {meta.get('max_review_items', 'n/a')}",
+        f"- Request timeout seconds: {meta.get('request_timeout', 'n/a')}",
+        f"- Debug raw responses saved: {meta.get('debug_save_raw', 'n/a')}",
+        f"- Raw items file: {meta.get('raw_items_file') or 'none'}",
         "",
         "## 2. Data Sources Used",
         "",
@@ -64,17 +74,20 @@ def _render_markdown(analysis: dict) -> str:
             f"- Candidates after relevance filter: {relevance.get('evidence_candidates_after_relevance_filter', 'n/a')}",
             f"- Relevance-filtered items: {relevance.get('relevance_filtered_items', 'n/a')}",
             "",
+            "## 5. Pain Point Clusters",
+            "",
         ]
     )
+    lines.extend(_cluster_lines(cluster_artifacts))
 
     section_numbers = {
-        "recurring_problem_signals": "5",
-        "unmet_needs": "6",
-        "adoption_barriers": "7",
-        "dissatisfaction_current_solutions": "8",
-        "differentiation_opportunities": "9",
-        "community_traction_clues": "10",
-        "competing_solution_mentions": "11",
+        "recurring_problem_signals": "6",
+        "unmet_needs": "7",
+        "adoption_barriers": "8",
+        "dissatisfaction_current_solutions": "9",
+        "differentiation_opportunities": "10",
+        "community_traction_clues": "11",
+        "competing_solution_mentions": "12",
     }
 
     for category, summary in analysis["category_summaries"].items():
@@ -92,16 +105,46 @@ def _render_markdown(analysis: dict) -> str:
         if summary["example_evidence"]:
             lines.append("")
 
-    lines.extend(["## 12. Key Uncertainty Notes", ""])
+    lines.extend(["## 13. Key Uncertainty Notes", ""])
     lines.extend([f"- {note}" for note in analysis["uncertainty_notes"]])
 
-    lines.extend(["", "## 13. Implications for Early-Stage Venture Evaluation", ""])
+    lines.extend(["", "## 14. Implications for Early-Stage Venture Evaluation", ""])
     lines.extend([f"- {item}" for item in analysis["venture_implications"]])
 
-    lines.extend(["", "## 14. Limitations / Why This Does Not Replace Human Judgement", ""])
+    lines.extend(["", "## 15. Limitations / Why This Does Not Replace Human Judgement", ""])
     lines.extend([f"- {item}" for item in analysis["limitations"]])
     lines.append("")
     return "\n".join(lines)
+
+
+def _cluster_lines(cluster_artifacts: list[dict]) -> list[str]:
+    if not cluster_artifacts:
+        return ["No evidence clusters generated for this run.", ""]
+
+    lines = []
+    for artifact in cluster_artifacts:
+        cluster = artifact["artifact"]
+        lines.extend(
+            [
+                f"### {cluster['label']}",
+                "",
+                f"- Cluster ID: `{cluster['cluster_id']}`",
+                f"- Items: {cluster['item_count']}",
+                f"- Source mix: {_format_dict(cluster.get('source_mix', {}))}",
+                f"- Average relevance score: {cluster.get('average_relevance_score', 'n/a')}",
+                f"- Product opportunity: {cluster['product_opportunity']}",
+                f"- Top terms: {_format_list(cluster.get('top_terms', [])) or 'none'}",
+                f"- Representative item IDs: {_format_list(cluster.get('representative_item_ids', [])) or 'none'}",
+                f"- Grouping basis: {cluster.get('grouping_basis', 'n/a')}",
+                "",
+            ]
+        )
+        excerpts = cluster.get("evidence_excerpts", [])[:3]
+        if excerpts:
+            lines.append("Representative evidence:")
+            lines.extend([f"- {excerpt}" for excerpt in excerpts])
+            lines.append("")
+    return lines
 
 
 def _format_dict(value: dict) -> str:

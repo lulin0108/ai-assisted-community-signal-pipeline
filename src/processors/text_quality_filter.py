@@ -7,6 +7,7 @@ company self-description, product landing copy, and directory snippets.
 
 from collections import Counter
 
+from models import FilteringSummary
 from processors.text_cleaner import clean_text, excerpt
 
 
@@ -112,11 +113,11 @@ QUALITY_TERMS = [
 ]
 
 
-def filter_quality_items(raw_items: list[dict]) -> tuple[list[dict], list[dict], dict]:
+def filter_quality_items(raw_items: list[dict], start_index: int = 1) -> tuple[list[dict], list[dict], dict]:
     kept = []
     excluded = []
 
-    for index, item in enumerate(raw_items, start=1):
+    for index, item in enumerate(raw_items, start=start_index):
         decision = assess_item_quality(item, index)
         if decision["kept"]:
             kept_item = dict(item)
@@ -126,7 +127,7 @@ def filter_quality_items(raw_items: list[dict]) -> tuple[list[dict], list[dict],
         else:
             excluded.append(decision)
 
-    summary = _summarize_filtering(raw_items, kept, excluded)
+    summary = summarize_filtering(raw_items, kept, excluded)
     return kept, excluded, summary
 
 
@@ -251,7 +252,7 @@ def _looks_review_like(text: str) -> bool:
     return 6 <= word_count <= 260 and (has_experience or has_feedback)
 
 
-def _summarize_filtering(raw_items: list[dict], kept: list[dict], excluded: list[dict]) -> dict:
+def summarize_filtering(raw_items: list[dict], kept: list[dict], excluded: list[dict]) -> dict:
     raw_by_source = Counter(item.get("source_type", "unknown") for item in raw_items)
     kept_by_source = Counter(item.get("source_type", "unknown") for item in kept)
     excluded_by_source = Counter(row.get("source_type", "unknown") for row in excluded)
@@ -261,12 +262,12 @@ def _summarize_filtering(raw_items: list[dict], kept: list[dict], excluded: list
             if reason:
                 reason_counts[reason.split(":")[0]] += 1
 
-    return {
-        "raw_items_collected": len(raw_items),
-        "filtered_out_items": len(excluded),
-        "evidence_candidate_items": len(kept),
-        "raw_by_source": dict(raw_by_source),
-        "kept_by_source": dict(kept_by_source),
-        "excluded_by_source": dict(excluded_by_source),
-        "top_exclusion_reasons": dict(reason_counts.most_common()),
-    }
+    return FilteringSummary(
+        raw_items_collected=len(raw_items),
+        filtered_out_items=len(excluded),
+        evidence_candidate_items=len(kept),
+        raw_by_source=dict(raw_by_source),
+        kept_by_source=dict(kept_by_source),
+        excluded_by_source=dict(excluded_by_source),
+        top_exclusion_reasons=dict(reason_counts.most_common()),
+    ).to_dict()
