@@ -82,6 +82,8 @@ After the run completes, open the newest files in:
 - `output/html/`
 - `output/csv/`
 
+An illustrative sample memo is available at `docs/sample_venture_signal_memo.md`.
+
 ## Optional Configuration
 
 The default configuration is already set for the current MVP scope. You can override it with environment variables:
