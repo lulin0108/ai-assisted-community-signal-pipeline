@@ -17,6 +17,16 @@ The project now demonstrates how messy public discussion and public software fee
 
 ## What Has Already Been Implemented
 
+### E-commerce opportunity pilot
+
+- `commerce/index.html` provides a browser-local, visual product opportunity review. It accepts a seller's brief and evaluates the bundled US pet-feeding evidence in `commerce/evidence.js`.
+- The pilot compares feature coverage across sampled products, ranks query-matched directions, and preserves source links, supporting reviews, and counterexamples. It marks market size as unestimated and declines scenarios outside the sample's coverage.
+- The prototype shares the original workflow's provenance-first approach and keeps the software venture pipeline entry point intact. The next integration to validate is a bounded, permitted product and review discovery provider that can populate the same evidence format for new scenes.
+- The workspace now has a Chinese interface and a separate local live-discovery mode backed by the Brave Search Web API. It retains exact queries, separates product and buyer-feedback leads, and groups possible pain signals from snippets. The search token is read from `BRAVE_SEARCH_API_KEY` server-side. A credentialed end-to-end provider smoke test and page-level verification of candidate features are the next steps. Search snippets do not populate verified market or competition metrics.
+- `commerce/desk-cable-case.html` is the second, API-free showcase. It records four source-linked competitor examples, buyer feedback from two product families, and a decision to check narrow desk-edge fit before sampling. Its AI-generated concept image explains the proposed form and is explicitly labeled as unvalidated. The workspace and README link directly to the case.
+- `python commerce/export_case.py` recreates the downloadable desk case with its image and styles embedded in one HTML file. This is the same case as the browser workspace, and uses the checked-in illustration.
+- The desk concept has three linked evidence notes for the clamp, tray footprint, and cable exit. The workspace and case link to a public seller feedback form that collects a scenario, a decision, and remaining evidence gaps.
+
 Implemented MVP components:
 
 - Public discussion collector for Hacker News comments through the Algolia API.
