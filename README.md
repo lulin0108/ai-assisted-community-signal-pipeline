@@ -83,6 +83,8 @@ Open [the Chinese-language product opportunity workspace](commerce/index.html) f
 
 To share that report as a single file, run `python commerce/export_case.py`. Open `output/html/desk-cable-case-with-image.html` in a browser. The export embeds its image and styles and requires no credentials or network connection to render.
 
+The numbered image hotspots open the evidence, existing alternatives, and checks for each proposed feature. [Seller feedback](https://github.com/lulin0108/ai-assisted-community-signal-pipeline/issues/new?template=seller-feedback.yml) is submitted through a public GitHub issue form. The workspace does not send the scenario automatically.
+
 ### Optional live discovery
 
 Live discovery runs a bounded search for public product, feedback, and alternative pages. It supports the US, UK, and Canada independently of the interface language. Search snippets are leads for source review. Observed search results do not establish market activity, volume, or a verified product gap.

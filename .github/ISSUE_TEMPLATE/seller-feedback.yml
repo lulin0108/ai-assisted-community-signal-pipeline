@@ -1,0 +1,32 @@
+name: 卖家反馈与场景
+description: 分享一个真实消费场景，以及报告对选品判断的帮助。
+title: "[卖家反馈] "
+body:
+  - type: markdown
+    attributes:
+      value: 表单提交后会成为公开 Issue。请只填写可公开的场景、观察与判断。
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 你在验证什么消费场景？
+      placeholder: 例如，想找适合美国小桌面用户、不需要打孔的理线产品。
+    validations:
+      required: true
+  - type: dropdown
+    id: decision
+    attributes:
+      label: 看完报告，你会怎么做？
+      options:
+        - 继续核查这个方向
+        - 调整商品方向或目标场景
+        - 暂缓或放下
+        - 报告还不足以改变判断
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: 哪条证据影响了决定？还缺什么？
+      placeholder: 可以写下最有用的证据、期待补充的竞品、评论、销量或实测规格。
+    validations:
+      required: true
