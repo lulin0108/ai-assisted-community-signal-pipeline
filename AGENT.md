@@ -8,6 +8,10 @@ The system should help identify, organize, and interpret messy public online sig
 
 The current scope includes workflow automation tools, admin automation tools, lightweight business operations tools, AI-enabled small-business productivity systems, embedded AI tools for solo operators or lean teams, and operational software for small teams.
 
+### E-commerce Opportunity Pilot
+
+The separate `commerce/` pilot applies the same evidence principles to product opportunity discovery for e-commerce and DTC sellers. A seller supplies a consumer scenario and may include examples. The product is responsible for finding and comparing evidence and presenting a traceable decision about further research. The pilot must distinguish buyer feedback, documented competitor features, and inferred product directions. Activity and market size require their own evidence, and missing coverage must remain visible. The data-source and provenance boundaries below apply to both workflows.
+
 ## Core Framing and Positioning
 
 This project is a decision-support system, not an investment oracle.

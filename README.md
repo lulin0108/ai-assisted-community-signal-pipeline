@@ -2,6 +2,8 @@
 
 A lightweight prototype for AI-assisted, uncertainty-aware venture-evaluation support. The project turns messy public discussion and public software feedback into structured supplementary evidence for early-stage diligence.
 
+**中文版电商选品 Demo** · [查看两个离线案例和启动方式](#e-commerce-opportunity-pilot)。消费场景、买家反馈、竞品对照和带图的产品构想，均可在本地体验，无需 API 密钥。
+
 The problem it addresses: early-stage ventures often lack rich formal data, but public communities and software-support environments can still reveal weak signals about operational pain, unmet needs, adoption barriers, workflow friction, and dissatisfaction with existing tools.
 
 What this project is not: it is not generic sentiment analysis, social listening, product hunting, financial advice, or an automated investment recommendation system. It is a decision-support workflow for organizing weak public signals so a human evaluator can ask better diligence questions.
@@ -70,6 +72,29 @@ Main outputs are written to:
 - `data/storage/`: local SQLite run index for run metadata, page-level collection state, resumable collection state, diagnostics, stage records, summaries, and evidence rows.
 
 Fallback demo records are clearly labeled if a live endpoint is unavailable.
+
+## E-commerce Opportunity Pilot
+
+Open [the Chinese-language product opportunity workspace](commerce/index.html) from the local checkout in a browser. The offline sample compares US pet-feeding products, ranks candidate directions, and displays buyer evidence and counterexamples. No credentials are required for this mode.
+
+[A second public-web case study](commerce/desk-cable-case.html) compares no-drill desk cable organizers, traces fit complaints to their sources, and illustrates a candidate design with an AI-generated concept image. The illustration is a curated sample, and its dimensions, fit, and load capacity have yet to be tested.
+
+![Illustrative desk cable tray concept with shallow clamps and side cable routing](commerce/desk-cable-concept.webp)
+
+To share that report as a single file, run `python commerce/export_case.py`. Open `output/html/desk-cable-case-with-image.html` in a browser. The export embeds its image and styles and requires no credentials or network connection to render.
+
+### Optional live discovery
+
+Live discovery runs a bounded search for public product, feedback, and alternative pages. It supports the US, UK, and Canada independently of the interface language. Search snippets are leads for source review. Observed search results do not establish market activity, volume, or a verified product gap.
+
+1. Install the project dependencies with `python -m pip install -r requirements.txt`.
+2. Obtain a Brave Search API token and set it in the current terminal. In PowerShell, use `$env:BRAVE_SEARCH_API_KEY = "YOUR_KEY"`. On macOS or Linux, use `export BRAVE_SEARCH_API_KEY='YOUR_KEY'`.
+3. Run `python commerce/server.py` and open [the local workspace](http://127.0.0.1:8765/). Use `--port 8766` if the default port is occupied.
+4. Select live discovery, choose a target market, and submit a scenario. Optional English search terms are helpful when the brief uses vocabulary outside the pilot's Chinese-to-English term list.
+
+The token stays in the local Python process. The brief and derived terms are sent to the search provider when live discovery is submitted. A submission makes up to four provider calls and keeps the exact search queries visible in the report. The server is bound to loopback and does not write the queries or search results to the repository.
+
+Run the pilot's analysis tests with `node --test tests/commerce_analysis.test.cjs` and the Python suite with `python -m unittest discover -s tests`.
 
 ## Quick Start
 

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>选品机会工作台</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="evidence.js"></script>
+  <script defer src="analysis.js"></script>
+  <script defer src="zh.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到选品研究</a>
+  <header class="topbar">
+    <div class="frame top-inner">
+      <span class="brand">选品研究</span>
+      <nav aria-label="报告导航">
+        <a href="#opportunities">机会判断</a>
+        <a href="#competition">竞品对照</a>
+        <a href="#evidence">反馈证据</a>
+      </nav>
+      <span class="mode" id="mode-status">离线样本</span>
+    </div>
+  </header>
+  <main id="main" class="frame">
+    <section class="intro" aria-labelledby="page-title">
+      <div class="case-heading"><h1 id="page-title">选品机会工作台</h1><a class="case-link" href="desk-cable-case.html">公开案例：桌下理线</a></div>
+      <form id="brief-form">
+        <label for="scene">消费场景</label>
+        <textarea id="scene" name="scene" rows="2" minlength="2" maxlength="400" required placeholder="例如：养宠家庭每天要擦掉水碗周围的积水，有哪些可以小批量试卖的方向？"></textarea>
+        <div class="form-controls">
+          <fieldset class="segmented" aria-label="数据模式">
+            <label><input type="radio" name="mode" value="sample" checked><span>离线样本</span></label>
+            <label><input type="radio" name="mode" value="live"><span>实时检索</span></label>
+          </fieldset>
+          <label for="market" class="market-label">目标市场</label>
+          <select id="market" name="market" disabled aria-label="目标市场"><option value="US">美国</option><option value="GB">英国</option><option value="CA">加拿大</option></select>
+          <button class="primary" id="run-button" type="submit">查看机会</button>
+        </div>
+        <details id="search-options" class="search-options" hidden><summary>补充搜索关键词</summary>
+          <label for="keywords" class="sr-only">英文关键词，可选</label>
+          <input id="keywords" name="keywords" maxlength="120" placeholder="英文关键词，可选，例如 pet feeding mat">
+        </details>
+      </form>
+    </section>
+    <p id="announcement" class="sr-only" role="status"></p>
+    <div id="result"></div>
+    <noscript><p>请启用浏览器的 JavaScript。</p></noscript>
+  </main>
+  <footer class="frame footer"><span>选品研究</span><span>电商与 DTC 选品工作台</span></footer>
+</body>
+</html>
